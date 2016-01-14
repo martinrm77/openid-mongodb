@@ -32,8 +32,10 @@ When using python-openid, use the MongoDB store:
     openid_store = MongoDBStore()
     openid_server = server.Server(openid_store, 'base_url_here')
 
-MongoDBStore takes several parameters, host, port, db, and a collection names for associations and nonces.
+MongoDBStore takes several parameters, host, port, db, username, password, replicaSet and a collection names for associations and nonces. All other keyword args are passed to the MongoClient call.
     
     openid_store(MongoDBtore(host='localhost', port=27017, db="openid", 
+                             username=None, password=None,
                              associations_collection="associations",
-                             nonces_collection="nonces"))
+                             nonces_collection="nonces",
+                             **kwargs))
