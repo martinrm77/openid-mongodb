@@ -6,8 +6,8 @@ import time, logging
 from openid.store import nonce
 from openid.store.interface import OpenIDStore
 from openid.association import Association
-from pymongo import MongoClient
-from pymongo.errors import DuplicateKeyError, AutoReconnect
+import pymongo
+#from pymongo.errors import DuplicateKeyError, AutoReconnect
 
 log = logging.getLogger(__name__)
 
@@ -29,16 +29,26 @@ def auto(call):
 
 class MongoDBStore(OpenIDStore):
 
-    def __init__(self, host="localhost", port=27017, db="openid",
-                 associations_collection="associations",
-                 nonces_collection="nonces",
+    def __init__(self,
+                 host="localhost",
+                 db=None,
                  username=None,
                  password=None,
+                 associations_collection="associations",
+                 nonces_collection="nonces",
                  **kwargs):
-        self._conn = MongoClient(host = host, port = int(port), **kwargs)
-        self._db = self._conn[db]
-        if username and password:
-            auto(self._db.authenticate(username, password))
+        self._conn = pymongo.MongoClient(host, **kwargs)
+        if host.startswith('mongodb://'):
+            parsed_uri = pymongo.uri_parser.parse_uri(host)
+            db = parsed_uri['database'] or db
+            username = parsed_uri['username'] or username
+            password = parsed_uri['password'] or password
+        if db:
+            self._db = self._conn[db]
+        else:
+            raise Exception("No mongodb database passed!")
+        if username:
+            self._db.authenticate(username, password)
         self.associations = self._db[associations_collection]
         self.nonces = self._db[nonces_collection]
         self.log_debug = logging.DEBUG >= log.getEffectiveLevel()
@@ -115,7 +125,7 @@ class MongoDBStore(OpenIDStore):
                                 "timestamp": timestamp,
                                 "salt": salt},
                                safe=True))
-        except DuplicateKeyError, e:
+        except pymongo.errors.DuplicateKeyError, e:
             if self.log_debug:
                 log.debug('Nonce already exists: %s', n)
             return False

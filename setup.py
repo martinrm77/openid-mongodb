@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.2'
+version = '0.3'
 
 setup(name='openid-mongodb',
       version=version,
@@ -21,5 +21,5 @@ setup(name='openid-mongodb',
       include_package_data=True,
       zip_safe=False,
       test_suite="tests.test_mongodbstore",
-      install_requires=["pymongo>=1.9", "python-openid>=2.2.4"]
+      install_requires=["pymongo>=2.7", "python-openid>=2.2.4"]
 )
